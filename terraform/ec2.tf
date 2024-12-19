@@ -1,5 +1,5 @@
 resource "aws_security_group" "kubeadm_security_group" {
-  name   = "allow_ssh"
+  name   = "kubeadm-security-group"
   vpc_id = aws_vpc.kubeadm_vpc.id
 }
 
@@ -9,6 +9,14 @@ resource "aws_vpc_security_group_ingress_rule" "kubeadm_allow_ssh_ipv4" {
   from_port         = 22
   ip_protocol       = "tcp"
   to_port           = 22
+}
+
+resource "aws_vpc_security_group_ingress_rule" "kubeadm_allow_pseudo_https" {
+  security_group_id = aws_security_group.kubeadm_security_group.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 6443
+  ip_protocol       = "tcp"
+  to_port           = 6443
 }
 
 resource "aws_vpc_security_group_egress_rule" "kubeadm_outbound_ipv4" {
