@@ -19,6 +19,14 @@ resource "aws_vpc_security_group_ingress_rule" "kubeadm_alb_inbound_http" {
   to_port           = 80
 }
 
+resource "aws_vpc_security_group_ingress_rule" "kubeadm_alb_inbound_kube_https" {
+  security_group_id = aws_security_group.kubeadm_alb_security_group.id
+  cidr_ipv4         = "0.0.0.0/0"
+  from_port         = 6443
+  ip_protocol       = "tcp"
+  to_port           = 6443
+}
+
 resource "aws_vpc_security_group_egress_rule" "kubeadm_alb_outbound" {
   security_group_id = aws_security_group.kubeadm_alb_security_group.id
   cidr_ipv4         = "0.0.0.0/0"

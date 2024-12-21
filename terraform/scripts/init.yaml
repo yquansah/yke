@@ -74,3 +74,5 @@ write_files:
       apt-mark hold kubelet kubeadm kubectl
 
       kubeadm config images pull
+runcmd:
+  - bash /usr/local/bin/init.sh
