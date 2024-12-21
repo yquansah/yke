@@ -52,7 +52,7 @@ write_files:
           tee /etc/apt/sources.list.d/cri-o.list
 
       apt-get update -y
-      apt-get install -y cri-o
+      apt-get install -y cri-o apache2
 
       systemctl daemon-reload
       systemctl enable crio --now
