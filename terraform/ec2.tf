@@ -3,26 +3,31 @@ resource "aws_security_group" "kubeadm_security_group" {
   vpc_id = aws_vpc.kubeadm_vpc.id
 }
 
-resource "aws_vpc_security_group_ingress_rule" "kubeadm_allow_ssh_ipv4" {
+resource "aws_security_group_rule" "kubeadm_ingress_ssh_rule" {
+  type              = "ingress"
   security_group_id = aws_security_group.kubeadm_security_group.id
-  cidr_ipv4         = "0.0.0.0/0"
+  cidr_blocks       = ["0.0.0.0/0"]
   from_port         = 22
-  ip_protocol       = "tcp"
   to_port           = 22
+  protocol          = "tcp"
 }
 
-resource "aws_vpc_security_group_ingress_rule" "kubeadm_allow_pseudo_https" {
-  security_group_id = aws_security_group.kubeadm_security_group.id
-  cidr_ipv4         = "0.0.0.0/0"
-  from_port         = 6443
-  ip_protocol       = "tcp"
-  to_port           = 6443
+resource "aws_security_group_rule" "kubeadm_ingress_ports_all_rule" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.kubeadm_security_group.id
+  source_security_group_id = aws_security_group.kubeadm_elb_security_group.id
+  from_port                = 0
+  to_port                  = 65535
+  protocol                 = "tcp"
 }
 
-resource "aws_vpc_security_group_egress_rule" "kubeadm_outbound_ipv4" {
+resource "aws_security_group_rule" "kubeadm_egress_all" {
+  type              = "egress"
   security_group_id = aws_security_group.kubeadm_security_group.id
-  cidr_ipv4         = "0.0.0.0/0"
-  ip_protocol       = -1
+  cidr_blocks       = ["0.0.0.0/0"]
+  protocol          = -1
+  from_port         = 0
+  to_port           = 0
 }
 
 resource "aws_key_pair" "yoofi_key" {

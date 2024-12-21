@@ -52,7 +52,7 @@ write_files:
           tee /etc/apt/sources.list.d/cri-o.list
 
       apt-get update -y
-      apt-get install -y cri-o apache2
+      apt-get install -y cri-o
 
       systemctl daemon-reload
       systemctl enable crio --now
@@ -74,5 +74,6 @@ write_files:
       apt-mark hold kubelet kubeadm kubectl
 
       kubeadm config images pull
+
 runcmd:
   - bash /usr/local/bin/init.sh
