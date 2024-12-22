@@ -47,7 +47,26 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_instance" "kubeadm_instance" {
+resource "aws_instance" "kubeadm_control_plane" {
+  ami = data.aws_ami.ubuntu.id
+
+  subnet_id = aws_subnet.kubeadm_public_subnet[0].id
+
+  instance_type = "t3.medium"
+
+  key_name = aws_key_pair.yoofi_key.key_name
+
+  vpc_security_group_ids = [aws_security_group.kubeadm_security_group.id]
+
+  user_data = file("scripts/init.yaml")
+
+  tags = {
+    Name      = "kubeadm-control-plane-0"
+    Component = "control-plane-node"
+  }
+}
+
+resource "aws_instance" "kubeadm_worker" {
   count = 2
   ami   = data.aws_ami.ubuntu.id
 
@@ -62,6 +81,7 @@ resource "aws_instance" "kubeadm_instance" {
   user_data = file("scripts/init.yaml")
 
   tags = {
-    Name = "kubeadm-${count.index}"
+    Name      = "kubeadm-worker-${count.index}"
+    Component = "worker-node"
   }
 }

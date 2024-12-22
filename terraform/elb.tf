@@ -25,7 +25,7 @@ resource "aws_lb" "kubeadm_elb" {
   subnets            = [for subnet in aws_subnet.kubeadm_public_subnet : subnet.id]
 
   tags = {
-    Environment = "production"
+    Component = "load-balancer"
   }
 }
 
@@ -46,7 +46,7 @@ resource "aws_lb_target_group" "kubeadm_target_group" {
 
 resource "aws_lb_target_group_attachment" "kubeadm_target_group_attachment" {
   target_group_arn = aws_lb_target_group.kubeadm_target_group.arn
-  target_id        = aws_instance.kubeadm_instance[0].id
+  target_id        = aws_instance.kubeadm_control_plane.id
 }
 
 
