@@ -1,0 +1,13 @@
+- name: Run actions on kubernetes control plane
+  hosts: kubernetes_control_plane
+  tasks:
+    - name: Run kubeadm init
+      ansible.builtin.shell: |
+        #!/bin/bash
+
+- name: Run actions on kubernetes worker nodes
+  hosts: kubernetes_workers
+  tasks:
+    - name: Run kubeadm join
+      ansible.builtin.shell: |
+        #!/bin/bash
