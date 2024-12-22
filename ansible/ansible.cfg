@@ -1,4 +1,0 @@
-[defaults]
-inventory = inventory/hosts.ini
-host_key_checking = False
-retry_files_enabled = False
