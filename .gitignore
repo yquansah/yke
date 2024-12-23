@@ -31,3 +31,8 @@ override.tf.json
 # Ignore CLI configuration files
 .terraformrc
 terraform.rc
+
+
+# YKE specific
+init_output.txt
+*.conf

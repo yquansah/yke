@@ -1,29 +1,79 @@
-resource "aws_security_group" "kubeadm_security_group" {
-  name   = "kubeadm-security-group"
-  vpc_id = aws_vpc.kubeadm_vpc.id
+resource "aws_security_group" "yke_worker_node_sg" {
+  name   = "yke-worker-node-sg"
+  vpc_id = aws_vpc.yke_vpc.id
 }
 
-resource "aws_security_group_rule" "kubeadm_ingress_ssh_rule" {
+resource "aws_security_group_rule" "yke_worker_node_ingress_bgp_rule" {
   type              = "ingress"
-  security_group_id = aws_security_group.kubeadm_security_group.id
+  security_group_id = aws_security_group.yke_worker_node_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+  from_port         = 179
+  to_port           = 179
+  protocol          = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_worker_node_ingress_ssh" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_worker_node_sg.id
   cidr_blocks       = ["0.0.0.0/0"]
   from_port         = 22
   to_port           = 22
   protocol          = "tcp"
 }
 
-resource "aws_security_group_rule" "kubeadm_ingress_ports_all_rule" {
+resource "aws_security_group_rule" "yke_worker_node_egress_all" {
+  type              = "egress"
+  security_group_id = aws_security_group.yke_worker_node_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+  protocol          = -1
+  from_port         = 0
+  to_port           = 0
+}
+
+resource "aws_security_group" "yke_control_plane_sg" {
+  name   = "yke-control-plane-sg"
+  vpc_id = aws_vpc.yke_vpc.id
+}
+
+resource "aws_security_group_rule" "yke_control_plane_ingress_bgp_rule" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_control_plane_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+  from_port         = 179
+  to_port           = 179
+  protocol          = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_control_plane_ingress_all_ssh" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_control_plane_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+  from_port         = 22
+  to_port           = 22
+  protocol          = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_ingress_elb_kube_api_server" {
   type                     = "ingress"
-  security_group_id        = aws_security_group.kubeadm_security_group.id
-  source_security_group_id = aws_security_group.kubeadm_elb_security_group.id
-  from_port                = 0
-  to_port                  = 65535
+  security_group_id        = aws_security_group.yke_control_plane_sg.id
+  source_security_group_id = aws_security_group.yke_elb_security_group.id
+  from_port                = 6443
+  to_port                  = 6443
   protocol                 = "tcp"
 }
 
-resource "aws_security_group_rule" "kubeadm_egress_all" {
+resource "aws_security_group_rule" "yke_ingress_worker_nodes_kube_api_server" {
+  type                     = "ingress"
+  security_group_id        = aws_security_group.yke_control_plane_sg.id
+  source_security_group_id = aws_security_group.yke_worker_node_sg.id
+  from_port                = 6443
+  to_port                  = 6443
+  protocol                 = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_control_plane_egress_all" {
   type              = "egress"
-  security_group_id = aws_security_group.kubeadm_security_group.id
+  security_group_id = aws_security_group.yke_control_plane_sg.id
   cidr_blocks       = ["0.0.0.0/0"]
   protocol          = -1
   from_port         = 0
@@ -47,41 +97,41 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-resource "aws_instance" "kubeadm_control_plane" {
+resource "aws_instance" "yke_control_plane" {
   ami = data.aws_ami.ubuntu.id
 
-  subnet_id = aws_subnet.kubeadm_public_subnet[0].id
+  subnet_id = aws_subnet.yke_public_subnet[0].id
 
   instance_type = "t3.medium"
 
   key_name = aws_key_pair.yoofi_key.key_name
 
-  vpc_security_group_ids = [aws_security_group.kubeadm_security_group.id]
+  vpc_security_group_ids = [aws_security_group.yke_control_plane_sg.id]
 
   user_data = file("scripts/init.yaml")
 
   tags = {
-    Name      = "kubeadm-control-plane-0"
+    Name      = "yke-control-plane-0"
     Component = "control-plane-node"
   }
 }
 
-resource "aws_instance" "kubeadm_worker" {
+resource "aws_instance" "yke_worker_node" {
   count = 2
   ami   = data.aws_ami.ubuntu.id
 
-  subnet_id = aws_subnet.kubeadm_public_subnet[0].id
+  subnet_id = aws_subnet.yke_public_subnet[0].id
 
   instance_type = "t3.medium"
 
   key_name = aws_key_pair.yoofi_key.key_name
 
-  vpc_security_group_ids = [aws_security_group.kubeadm_security_group.id]
+  vpc_security_group_ids = [aws_security_group.yke_worker_node_sg.id]
 
   user_data = file("scripts/init.yaml")
 
   tags = {
-    Name      = "kubeadm-worker-${count.index}"
+    Name      = "yke-worker-${count.index}"
     Component = "worker-node"
   }
 }
