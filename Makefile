@@ -18,5 +18,5 @@ join-worker-node:
 reset-control-plane:
 	cd scripts && bash reset_control_plane.sh
 
-init-argo:
-	cd argo && bash init_argo.sh
+init-argocd:
+	cd argocd && bash init_argocd.sh

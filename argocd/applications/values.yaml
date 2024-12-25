@@ -1,0 +1,6 @@
+certManager:
+  name: cert-manager
+  chartRevision: v1.16.2
+  releaseName: cert-manager
+  namespace: cert-manager
+  host: 10.0.0.1

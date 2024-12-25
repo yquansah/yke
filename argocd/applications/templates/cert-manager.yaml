@@ -1,0 +1,28 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Values.certManager.name }}
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: {{ .Values.certManager.name }}
+    repoURL: https://charts.jetstack.io
+    targetRevision: {{ .Values.certManager.chartRevision }}
+    helm:
+      releaseName: {{ .Values.certManager.releaseName }}
+      valuesObject:
+        installCRDs: true
+  destination:
+    name: in-cluster
+    namespace: {{ .Values.certManager.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      allowEmpty: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true
