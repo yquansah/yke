@@ -4,12 +4,12 @@ metadata:
   name: yke-main
   namespace: argocd
   finalizers:
-    - resources-finalizer.argocd.argoproj.io
+    - resources-finalizer.argocd.argoproj.io/yke-main
 spec:
   project: default
   source:
-    repoURL: "git@github.com:yquansah/yke.git"
-    path: applications/
+    repoURL: https://github.com/yquansah/yke.git
+    path: argocd/applications
     targetRevision: main
     helm:
       valueFiles:
