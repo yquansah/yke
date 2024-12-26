@@ -11,4 +11,4 @@ fi
 
 helm repo add argo https://argoproj.github.io/argo-helm
 helm repo update
-helm install argo-cd argo/argo-cd --version 7.7.11 --namespace argocd --create-namespace --kubeconfig ../scripts/admin.conf
+helm install argo-cd argo/argo-cd --version 7.7.11 --namespace argocd --create-namespace --kubeconfig ../admin.conf
