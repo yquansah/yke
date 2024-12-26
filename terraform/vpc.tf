@@ -1,5 +1,5 @@
 resource "aws_vpc" "yke_vpc" {
-  cidr_block       = "10.0.0.0/16"
+  cidr_block       = var.vpc_cidr_range
   instance_tenancy = "default"
 }
 

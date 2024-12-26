@@ -8,10 +8,10 @@ ssh ubuntu@"$HOSTNAME" \
   #!/bin/bash
   NODENAME=$(hostname -s)
   sudo kubeadm init --control-plane-endpoint="$LOAD_BALANCER_HOST:$LOAD_BALANCER_PORT" --apiserver-cert-extra-sans="$LOAD_BALANCER_HOST" --pod-network-cidr="192.168.0.0/16" --node-name "$NODENAME" --ignore-preflight-errors Swap
-  sudo kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://docs.projectcalico.org/manifests/calico.yaml
+  sudo kubectl create --kubeconfig=/etc/kubernetes/admin.conf -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/tigera-operator.yaml
+  sudo kubectl create --kubeconfig=/etc/kubernetes/admin.conf -f https://raw.githubusercontent.com/projectcalico/calico/v3.29.1/manifests/custom-resources.yaml
+  sudo cp /etc/kubernetes/admin.conf admin.conf
+  sudo chown ubuntu:ubuntu admin.conf
 EOF
 
-ssh ubuntu@"$HOSTNAME" <<"EOF" >admin.conf
-  #!/bin/bash
-  sudo cat /etc/kubernetes/admin.conf
-EOF
+scp ubuntu@"$HOSTNAME":admin.conf .

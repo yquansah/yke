@@ -3,7 +3,7 @@ resource "aws_security_group" "yke_worker_node_sg" {
   vpc_id = aws_vpc.yke_vpc.id
 }
 
-resource "aws_security_group_rule" "yke_worker_node_ingress_bgp_rule" {
+resource "aws_security_group_rule" "yke_worker_node_ingress_all_bgp" {
   type              = "ingress"
   security_group_id = aws_security_group.yke_worker_node_sg.id
   cidr_blocks       = ["0.0.0.0/0"]
@@ -12,7 +12,7 @@ resource "aws_security_group_rule" "yke_worker_node_ingress_bgp_rule" {
   protocol          = "tcp"
 }
 
-resource "aws_security_group_rule" "yke_worker_node_ingress_ssh" {
+resource "aws_security_group_rule" "yke_worker_node_ingress_all_ssh" {
   type              = "ingress"
   security_group_id = aws_security_group.yke_worker_node_sg.id
   cidr_blocks       = ["0.0.0.0/0"]
@@ -21,22 +21,22 @@ resource "aws_security_group_rule" "yke_worker_node_ingress_ssh" {
   protocol          = "tcp"
 }
 
-resource "aws_security_group_rule" "yke_worker_node_ingress_kubelet" {
-  type                     = "ingress"
-  security_group_id        = aws_security_group.yke_worker_node_sg.id
-  source_security_group_id = aws_security_group.yke_control_plane_sg.id
-  from_port                = 10250
-  to_port                  = 10250
-  protocol                 = "tcp"
+resource "aws_security_group_rule" "yke_worker_node_ingress_vpc_kubelet" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_worker_node_sg.id
+  cidr_blocks       = [var.vpc_cidr_range]
+  from_port         = 10250
+  to_port           = 10250
+  protocol          = "tcp"
 }
 
-resource "aws_security_group_rule" "yke_worker_node_ingress_kube_proxy" {
-  type                     = "ingress"
-  security_group_id        = aws_security_group.yke_worker_node_sg.id
-  source_security_group_id = aws_security_group.yke_elb_security_group.id
-  from_port                = 10256
-  to_port                  = 10256
-  protocol                 = "tcp"
+resource "aws_security_group_rule" "yke_worker_node_ingress_vpc_kube_proxy" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_worker_node_sg.id
+  cidr_blocks       = [var.vpc_cidr_range]
+  from_port         = 10256
+  to_port           = 10256
+  protocol          = "tcp"
 }
 
 resource "aws_security_group_rule" "yke_worker_node_egress_all" {
@@ -71,7 +71,7 @@ resource "aws_security_group_rule" "yke_control_plane_ingress_all_ssh" {
   protocol          = "tcp"
 }
 
-resource "aws_security_group_rule" "yke_ingress_elb_kube_api_server" {
+resource "aws_security_group_rule" "yke_control_plane_ingress_elb_kube_api_server" {
   type                     = "ingress"
   security_group_id        = aws_security_group.yke_control_plane_sg.id
   source_security_group_id = aws_security_group.yke_elb_security_group.id
@@ -80,13 +80,31 @@ resource "aws_security_group_rule" "yke_ingress_elb_kube_api_server" {
   protocol                 = "tcp"
 }
 
-resource "aws_security_group_rule" "yke_ingress_worker_nodes_kube_api_server" {
-  type                     = "ingress"
-  security_group_id        = aws_security_group.yke_control_plane_sg.id
-  source_security_group_id = aws_security_group.yke_worker_node_sg.id
-  from_port                = 6443
-  to_port                  = 6443
-  protocol                 = "tcp"
+resource "aws_security_group_rule" "yke_control_plane_ingress_vpc_kube_api_server" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_control_plane_sg.id
+  cidr_blocks       = [var.vpc_cidr_range]
+  from_port         = 6443
+  to_port           = 6443
+  protocol          = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_control_plane_ingress_vpc_needed_ports" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_control_plane_sg.id
+  cidr_blocks       = [var.vpc_cidr_range]
+  from_port         = 10248
+  to_port           = 10260
+  protocol          = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_control_plane_ingress_vpc_etcd" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_control_plane_sg.id
+  cidr_blocks       = [var.vpc_cidr_range]
+  from_port         = 2379
+  to_port           = 2380
+  protocol          = "tcp"
 }
 
 resource "aws_security_group_rule" "yke_control_plane_egress_all" {

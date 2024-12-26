@@ -1,3 +1,9 @@
+variable "vpc_cidr_range" {
+  type        = string
+  description = "CIDR range of the VPC"
+  default     = "10.0.0.0/16"
+}
+
 variable "public_subnet_cidrs" {
   type        = list(string)
   description = "Public Subnet CIDR values"

@@ -67,6 +67,10 @@ write_files:
       echo "deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/$KUBERNETES_VERSION/deb/ /" |
           tee /etc/apt/sources.list.d/kubernetes.list
 
+      curl -LO https://github.com/containernetworking/plugins/releases/download/v1.6.1/cni-plugins-linux-amd64-v1.6.1.tgz
+      mkdir -p /opt/cni/bin
+      tar Cxzvf /opt/cni/bin cni-plugins-linux-amd64-v1.6.1.tgz
+
       apt-get update -y
       apt-get install -y kubelet="$KUBERNETES_INSTALL_VERSION" kubectl="$KUBERNETES_INSTALL_VERSION" kubeadm="$KUBERNETES_INSTALL_VERSION"
 
