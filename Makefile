@@ -1,4 +1,4 @@
-.PHONY: tf-plan tf-apply tf-destroy init-control-plane join-worker-node reset-control-plane init-argo
+.PHONY: tf-plan tf-apply tf-destroy init-control-plane join-worker-node reset-control-plane init-argo clean
 
 tf-plan:
 	cd terraform && terraform plan
@@ -20,3 +20,6 @@ reset-control-plane:
 
 init-argocd:
 	cd argocd && bash init_argocd.sh
+
+clean:
+	rm admin.conf ./scripts/init_output.txt
