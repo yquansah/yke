@@ -6,7 +6,7 @@ tf-plan:
 tf-apply:
 	cd terraform && terraform apply -auto-approve
 
-tf-destroy:
+tf-destroy: clean
 	cd terraform && terraform destroy -auto-approve
 
 init-control-plane:
@@ -18,8 +18,15 @@ join-worker-node:
 reset-control-plane:
 	cd scripts && bash reset_control_plane.sh
 
+clean:
+	@if [ -f admin.conf ]; then \
+		rm admin.conf; \
+		echo "Removed admin.conf"; \
+	fi
+	@if [ -f ./scripts/init_output.txt ]; then \
+		rm ./scripts/init_output.txt; \
+		echo "Removed ./scripts/init_output.txt"; \
+	fi
+
 init-argocd:
 	cd argocd && bash init_argocd.sh
-
-clean:
-	rm admin.conf ./scripts/init_output.txt
