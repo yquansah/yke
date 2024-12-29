@@ -10,8 +10,11 @@ ssh ubuntu@"$HOSTNAME" \
   sudo kubeadm init --control-plane-endpoint="$LOAD_BALANCER_HOST:$LOAD_BALANCER_PORT" --apiserver-cert-extra-sans="$LOAD_BALANCER_HOST" --pod-network-cidr="192.168.0.0/16" --node-name "$NODENAME" --ignore-preflight-errors Swap
   sudo kubectl apply --kubeconfig=/etc/kubernetes/admin.conf -f https://docs.projectcalico.org/manifests/calico.yaml
   sudo kubectl set env --kubeconfig=/etc/kubernetes/admin.conf daemonset/calico-node -n kube-system IP_AUTODETECTION_METHOD=interface=ens5
+  # curl -LO https://github.com/flannel-io/flannel/releases/latest/download/kube-flannel.yml
+  # sed -i '/net-conf.json:/,/Backend:/s/"Network": "10.244.0.0\/16"/"Network": "192.168.0.0\/16"/' kube-flannel.yml
+  # sudo kubectl --kubeconfig /etc/kubernetes/admin.conf apply -f kube-flannel.yml
   sudo cp /etc/kubernetes/admin.conf admin.conf
   sudo chown ubuntu:ubuntu admin.conf
 EOF
 
-scp ubuntu@"$HOSTNAME":admin.conf .
+scp ubuntu@"$HOSTNAME":admin.conf ../

@@ -1,5 +1,5 @@
 #!/bin/bash
-if [ ! -f "../scripts/admin.conf" ]; then
+if [ ! -f "../admin.conf" ]; then
   echo "admin.conf is not found, please run init_control_plane.sh first."
   exit 1
 fi

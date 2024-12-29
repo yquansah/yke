@@ -15,7 +15,7 @@ init-control-plane:
 join-worker-node:
 	cd scripts && bash join_worker_node.sh
 
-reset-control-plane:
+reset-control-plane: clean
 	cd scripts && bash reset_control_plane.sh
 
 clean:

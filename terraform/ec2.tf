@@ -12,6 +12,15 @@ resource "aws_security_group_rule" "yke_worker_node_ingress_all_bgp" {
   protocol          = "tcp"
 }
 
+resource "aws_security_group_rule" "yke_worker_node_ingress_all_ip_encapsulation" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_worker_node_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+  protocol          = 4
+  from_port         = 0
+  to_port           = 0
+}
+
 resource "aws_security_group_rule" "yke_worker_node_ingress_all_ssh" {
   type              = "ingress"
   security_group_id = aws_security_group.yke_worker_node_sg.id
@@ -53,13 +62,22 @@ resource "aws_security_group" "yke_control_plane_sg" {
   vpc_id = aws_vpc.yke_vpc.id
 }
 
-resource "aws_security_group_rule" "yke_control_plane_ingress_bgp_rule" {
+resource "aws_security_group_rule" "yke_control_plane_ingress_all_bgp" {
   type              = "ingress"
   security_group_id = aws_security_group.yke_control_plane_sg.id
   cidr_blocks       = ["0.0.0.0/0"]
   from_port         = 179
   to_port           = 179
   protocol          = "tcp"
+}
+
+resource "aws_security_group_rule" "yke_control_plane_ingress_all_ip_encapsulation" {
+  type              = "ingress"
+  security_group_id = aws_security_group.yke_control_plane_sg.id
+  cidr_blocks       = ["0.0.0.0/0"]
+  protocol          = 4
+  from_port         = 0
+  to_port           = 0
 }
 
 resource "aws_security_group_rule" "yke_control_plane_ingress_all_ssh" {
