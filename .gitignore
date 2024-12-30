@@ -34,5 +34,5 @@ terraform.rc
 
 
 # YKE specific
-init_output.txt
+command.txt
 *.conf
