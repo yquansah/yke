@@ -9,7 +9,7 @@ spec:
   project: default
   source:
     repoURL: https://github.com/yquansah/yke.git
-    path: argocd/applications
+    path: cluster_software/main_software
     targetRevision: main
     helm:
       valueFiles:

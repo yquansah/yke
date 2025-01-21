@@ -1,0 +1,172 @@
+---
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: {{ .Values.alloy.name }}
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: {{ .Values.alloy.chartName }}
+    repoURL: {{ .Values.alloy.chartURL }}
+    targetRevision: {{ .Values.alloy.chartRevision }}
+    helm:
+      releaseName: {{ .Values.alloy.releaseName }}
+      valuesObject:
+        alloy:
+          configMap:
+            create: true
+            content: |-
+              // https://grafana.com/docs/alloy/latest/reference/components/remote/remote.kubernetes.secret/
+              remote.kubernetes.secret "grafana_cloud" {
+                namespace = "alloy"
+                name = "grafana-cloud"
+                // The client block configures the Kubernetes client used to discover Probes.
+                // If the client block isn’t provided, the default in-cluster configuration
+                // with the service account of the running Alloy pod is used.
+                // (Note - maybe this could be used to access remote clusters from a separate kingdos alloy deployment)
+
+
+                // The following fields are exported and can be referenced by other components:
+                  // Name   Type          Description
+                  // data   map(secret)   Data from the secret obtained from Kubernetes.
+              }
+
+              remote.kubernetes.configmap "alloy_configmap" {
+                namespace = "alloy"
+                name = "alloy-configmap"
+              }
+
+              logging {
+                level = "info"
+                format = "logfmt"
+              }
+
+              // https://grafana.com/docs/alloy/latest/collect/prometheus-metrics/
+              discovery.kubernetes "pods" {
+                role = "pod"
+
+                namespaces {
+                  own_namespace = false
+                  names = json_decode(remote.kubernetes.configmap.grafana_cloud.data["prometheus-target-namespaces"])
+                }
+
+                // https://kubernetes.io/docs/concepts/overview/working-with-objects/field-selectors/
+                // selectors {
+                  // role  = "pod"
+                  // https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#set-based-requirement
+                  // label = "environment in (production, qa)"
+                // }
+              }
+
+              prometheus.operator.servicemonitors "servicemonitors" {
+                  // finds all prometheus servicemonitors in all namespaces by default
+                  forward_to = [prometheus.relabel.filter_metrics.receiver]
+              }
+
+              discovery.kubernetes "services" {
+                role = "service"
+
+                namespaces {
+                  own_namespace = false
+                  names = json_decode(remote.kubernetes.configmap.alloy_configmap.data["prometheus-target-namespaces"])
+                }
+              }
+
+              discovery.kubernetes "nodes" {
+                role = "node"
+
+                namespaces {
+                  own_namespace = false
+                  names = json_decode(remote.kubernetes.configmap.alloy_configmap.data["prometheus-target-namespaces"])
+                }
+              }
+
+              discovery.relabel "cadvisor" {
+                targets = discovery.kubernetes.nodes.targets
+                rule {
+                  replacement   = "/metrics/cadvisor"
+                  target_label  = "__metrics_path__"
+                }
+
+                rule {
+                  source_labels = ["__meta_kubernetes_node_name"]
+                  action = "replace"
+                  target_label = "node"
+                }
+              }
+
+              prometheus.scrape "services" {
+                targets    = discovery.kubernetes.services.targets
+                forward_to = [prometheus.relabel.filter_metrics.receiver]
+              }
+
+              prometheus.scrape "pods" {
+                targets    = discovery.kubernetes.pods.targets
+                forward_to = [prometheus.relabel.filter_metrics.receiver]
+              }
+
+              prometheus.scrape "nodes" {
+                targets    = discovery.kubernetes.nodes.targets
+                forward_to = [prometheus.relabel.filter_metrics.receiver]
+              }
+
+              prometheus.scrape "cadvisor" {
+                job_name   = "integrations/kubernetes/cadvisor"
+                targets    = discovery.relabel.cadvisor.output
+                scheme     = "https"
+                scrape_interval = "60s"
+                bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                tls_config {
+                  insecure_skip_verify = true
+                }
+                forward_to = [prometheus.relabel.filter_metrics.receiver]
+              }
+
+              prometheus.exporter.unix "node_exporter" {}
+
+              prometheus.scrape "node_exporter" {
+                targets = prometheus.exporter.unix.node_exporter.targets
+                forward_to = [prometheus.relabel.filter_metrics.receiver]
+              }
+
+              // relabeler playground:
+              // https://relabeler.promlabs.com/
+              prometheus.relabel "filter_metrics" {
+                // drop everything except the regexes specified in the user config
+                rule {
+                  action        = "keep"
+                  source_labels = ["__name__"]
+                  regex = remote.kubernetes.configmap.alloy_configmap.data["prometheus-allowlist-regex"]
+                }
+                forward_to = [prometheus.remote_write.metrics_service.receiver]
+              }
+
+              prometheus.remote_write "metrics_service" {
+                endpoint {
+                  url = remote.kubernetes.configmap.alloy_configmap.data["prometheus-url"]
+                  basic_auth {
+                    username = nonsensitive(remote.kubernetes.configmap.alloy_configmap.data["prometheus-username"])
+                    password = remote.kubernetes.secret.grafana_cloud.data["key"]
+                  }
+                }
+
+                external_labels = {
+                  "cluster" = remote.kubernetes.configmap.alloy_configmap.data["cluster"],
+                }
+              }
+          envFrom:
+            - secretRef:
+                name: alloy-api-secret
+  destination:
+    name: in-cluster
+    namespace: {{ .Values.alloy.namespace }}
+  syncPolicy:
+    automated:
+      prune: true
+      allowEmpty: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+      - PruneLast=true
+      - ApplyOutOfSyncOnly=true

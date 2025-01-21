@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  cluster: "yke"
+  loki-username: "931333"
+  prometheus-allowlist-regex: (up|market|kube.*status|argocd_app_info|container_memory|container_cpu|node_memory|node_cpu).*
+  prometheus-target-namespaces: '["default"]'
+  prometheus-username: "username"
+kind: ConfigMap
+metadata:
+  name: alloy-configmap
+  namespace: alloy
