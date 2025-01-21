@@ -8,7 +8,7 @@ spec:
   project: default
   source:
     chart: {{ .Values.certManager.name }}
-    repoURL: https://charts.jetstack.io
+    repoURL: {{ .Values.certManager.chartURL }}
     targetRevision: {{ .Values.certManager.chartRevision }}
     helm:
       releaseName: {{ .Values.certManager.releaseName }}

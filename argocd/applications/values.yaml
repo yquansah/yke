@@ -1,6 +1,15 @@
 certManager:
-  name: cert-manager
+  chartName: cert-manager
+  chartURL: https://charts.jetstack.io
   chartRevision: v1.16.2
-  releaseName: cert-manager
+  name: cert-manager
   namespace: cert-manager
-  host: 10.0.0.1
+  releaseName: yke-cert-manager
+
+alloy:
+  chartName: alloy
+  chartURL: https://grafana.github.io/helm-charts
+  chartRevision: v0.10.1
+  name: alloy
+  namespace: alloy
+  releaseName: yke-alloy
